@@ -5,8 +5,10 @@ app.use(express.json());
 
 app.post('/generate', (req, res) => {
     const API_KEY = process.env.GOOGLE_API_KEY;
-    const data = JSON.stringify({
-        contents: [{ parts: [{ text: "Tu es un expert en Roblox Luau. Réponds UNIQUEMENT avec le code source brut pour : " + req.body.message }] }]
+    
+    // On prépare la question pour l'IA
+    const payload = JSON.stringify({
+        contents: [{ parts: [{ text: "Réponds uniquement en Luau Roblox pour : " + req.body.message }] }]
     });
 
     const options = {
@@ -17,23 +19,28 @@ app.post('/generate', (req, res) => {
     };
 
     const request = https.request(options, (response) => {
-        let body = '';
-        response.on('data', (d) => body += d);
+        let str = '';
+        response.on('data', (chunk) => { str += chunk; });
         response.on('end', () => {
             try {
-                const json = JSON.parse(body);
-                if (json.candidates && json.candidates[0].content.parts[0].text) {
-                    res.json({ code: json.candidates[0].content.parts[0].text });
+                const data = JSON.parse(str);
+                // On renvoie le code à Roblox
+                if (data.candidates && data.candidates[0].content) {
+                    res.json({ code: data.candidates[0].content.parts[0].text });
                 } else {
-                    res.status(500).json({ error: "Erreur API Google" });
+                    res.status(500).json({ error: "API Google saturée" });
                 }
-            } catch (e) { res.status(500).json({ error: "Erreur JSON" }); }
+            } catch (e) {
+                res.status(500).json({ error: "Erreur de lecture" });
+            }
         });
     });
-    request.on('error', (e) => res.status(500).json({ error: e.message }));
-    request.write(data);
+
+    request.on('error', (err) => { res.status(500).json({ error: err.message }); });
+    request.write(payload);
     request.end();
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("Bridge Ready with Google!"));
+app.listen(PORT, () => console.log("SERVEUR OK"));
+
