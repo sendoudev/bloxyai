@@ -5,20 +5,15 @@ app.use(express.json());
 
 app.post('/generate', (req, res) => {
     const API_KEY = process.env.GOOGLE_API_KEY;
-    const prompt = "Tu es un expert en Roblox Luau. Réponds UNIQUEMENT avec le code source brut pour : " + req.body.message;
-    
     const data = JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
+        contents: [{ parts: [{ text: "Tu es un expert en Roblox Luau. Réponds UNIQUEMENT avec le code source brut pour : " + req.body.message }] }]
     });
 
     const options = {
         hostname: 'generativelanguage.googleapis.com',
         path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': data.length
-        }
+        headers: { 'Content-Type': 'application/json' }
     };
 
     const request = https.request(options, (response) => {
@@ -30,14 +25,11 @@ app.post('/generate', (req, res) => {
                 if (json.candidates && json.candidates[0].content.parts[0].text) {
                     res.json({ code: json.candidates[0].content.parts[0].text });
                 } else {
-                    res.status(500).json({ error: "Pas de réponse de l'IA" });
+                    res.status(500).json({ error: "Erreur API Google" });
                 }
-            } catch (e) {
-                res.status(500).json({ error: "Erreur JSON" });
-            }
+            } catch (e) { res.status(500).json({ error: "Erreur JSON" }); }
         });
     });
-
     request.on('error', (e) => res.status(500).json({ error: e.message }));
     request.write(data);
     request.end();
