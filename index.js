@@ -1,46 +1,40 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const app = express();
 app.use(express.json());
 
-// Récupère la clé depuis Render
-const API_KEY = process.env.GOOGLE_API_KEY;
-
+// Utilise une version compatible de fetch intégrée à Node 18+
 app.post('/generate', async (req, res) => {
-    try {
-        // URL de l'API Google Gemini
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    const API_KEY = process.env.GOOGLE_API_KEY;
+    
+    if (!API_KEY) {
+        return res.status(500).json({ error: "Clé API manquante sur Render" });
+    }
 
+    try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 contents: [{
-                    parts: [{ text: "Tu es un expert en Roblox Luau. Réponds UNIQUEMENT avec le code source brut pour cette demande : " + req.body.message }]
+                    parts: [{ text: "Tu es un expert en Roblox Luau. Réponds UNIQUEMENT avec le code source brut pour : " + req.body.message }]
                 }]
             })
         });
 
         const data = await response.json();
         
-        // Extraction du texte de la réponse Google
         if (data.candidates && data.candidates[0].content.parts[0].text) {
-            res.json({ code: data.candidates[0].content.parts[0].text });
+            let code = data.candidates[0].content.parts[0].text;
+            res.json({ code: code });
         } else {
-            console.error("Erreur Google API:", data);
-            res.status(500).json({ error: "L'IA n'a pas pu répondre" });
+            res.status(500).json({ error: "L'IA n'a pas pu générer de code" });
         }
-
     } catch (error) {
-        console.error("Erreur Serveur:", error);
-        res.status(500).json({ error: "Erreur interne" });
+        res.status(500).json({ error: "Erreur serveur" });
     }
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("Bridge Ready with Google Gemini!"));
-});
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => console.log("Bridge Ready!"));
+app.listen(PORT, () => console.log("Bridge Ready with Google!"));
