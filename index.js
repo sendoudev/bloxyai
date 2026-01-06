@@ -5,9 +5,8 @@ app.use(express.json());
 
 app.post('/generate', (req, res) => {
     const API_KEY = process.env.GOOGLE_API_KEY;
-    
     const payload = JSON.stringify({
-        contents: [{ parts: [{ text: "Réponds uniquement en Luau Roblox (code brut) pour : " + req.body.message }] }]
+        contents: [{ parts: [{ text: "Réponds uniquement en Luau Roblox pour : " + req.body.message }] }]
     });
 
     const options = {
@@ -23,15 +22,13 @@ app.post('/generate', (req, res) => {
         response.on('end', () => {
             try {
                 const data = JSON.parse(str);
-                // Correction ici pour bien lire la structure Google Gemini
-                if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+                if (data.candidates && data.candidates[0].content) {
                     res.json({ code: data.candidates[0].content.parts[0].text });
                 } else {
-                    console.log("Réponse API bizarre:", str);
-                    res.status(500).json({ error: "Structure de réponse invalide" });
+                    res.status(500).json({ error: "API Erreur" });
                 }
             } catch (e) {
-                res.status(500).json({ error: "Erreur lecture JSON" });
+                res.status(500).json({ error: "JSON Erreur" });
             }
         });
     });
@@ -46,8 +43,3 @@ app.listen(PORT, () => {
     console.log("SERVEUR OK");
     console.log("Clé détectée : OUI");
 });
-    console.log("Clé détectée :", process.env.GOOGLE_API_KEY ? "OUI" : "NON");
-});
-
-
-
