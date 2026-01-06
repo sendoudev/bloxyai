@@ -44,8 +44,3 @@ app.listen(PORT, () => {
     console.log("SERVEUR OK");
     console.log("Clé détectée :", process.env.GOOGLE_API_KEY ? "OUI" : "NON");
 });
-app.listen(PORT, () => {
-    console.log("SERVEUR OK");
-    console.log("Clé détectée :", process.env.GOOGLE_API_KEY ? "OUI" : "NON");
-});
-
