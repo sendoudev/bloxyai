@@ -42,5 +42,9 @@ app.post('/generate', (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("SERVEUR OK"));
+app.listen(PORT, () => {
+    console.log("SERVEUR OK");
+    console.log("Clé détectée :", process.env.GOOGLE_API_KEY ? "OUI" : "NON");
+});
+
 
