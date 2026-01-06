@@ -5,8 +5,9 @@ app.use(express.json());
 
 app.post('/generate', (req, res) => {
     const API_KEY = process.env.GOOGLE_API_KEY;
+    
     const payload = JSON.stringify({
-        contents: [{ parts: [{ text: "Réponds uniquement en Luau Roblox pour : " + req.body.message }] }]
+        contents: [{ parts: [{ text: "Tu es un expert Roblox. Réponds uniquement avec le code Luau pour : " + req.body.message }] }]
     });
 
     const options = {
@@ -22,13 +23,15 @@ app.post('/generate', (req, res) => {
         response.on('end', () => {
             try {
                 const data = JSON.parse(str);
+                // On vérifie que Google a bien répondu
                 if (data.candidates && data.candidates[0].content) {
-                    res.json({ code: data.candidates[0].content.parts[0].text });
+                    const result = data.candidates[0].content.parts[0].text;
+                    res.json({ code: result });
                 } else {
-                    res.status(500).json({ error: "API Erreur" });
+                    res.status(500).json({ error: "Erreur structure Google" });
                 }
             } catch (e) {
-                res.status(500).json({ error: "JSON Erreur" });
+                res.status(500).json({ error: "Erreur JSON" });
             }
         });
     });
